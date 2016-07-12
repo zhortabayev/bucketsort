@@ -52,6 +52,7 @@ public class Bucketsort {
 
 		for(int k: buckets.keySet()) 	
 			new BucketThread(buckets.get(k)).start();
+		
 		while(Thread.activeCount() != 1) {
 			/*wait until finished*/
 		}
