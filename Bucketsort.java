@@ -5,7 +5,10 @@ public class Bucketsort {
 	
 	public static void main(String[] args) {
 		
-		long startTime = System.currentTimeMillis();
+		double startTime = System.currentTimeMillis();
+		
+		int chars = 94;
+		int size = 0;
 
 		if(args.length != 1)
 			System.out.println("Please enter in correct format"
@@ -13,29 +16,31 @@ public class Bucketsort {
 		
 		String input = args[0];
 		String output = "bucketsort.out";
-		
-		Map<Integer, ArrayList<String>> bucketsAndKeys = new HashMap<Integer, ArrayList<String>>();		
-		
+				
+		Map<Integer, String []> buckets = new HashMap<Integer, String []>();		
+
 		try {
 			FileReader fileReader = new FileReader(input);			
 			BufferedReader bufferedReader = new BufferedReader(fileReader);
 			
+			size = Integer.valueOf(bufferedReader.readLine()) / chars;
 			String tempStr = "";
 			
-			while ((tempStr = bufferedReader.readLine()) != null) {
+			int [] sizes = new int[chars];
 
-				int tempInt = (int) tempStr.charAt(0);
-				
-				if(bucketsAndKeys.get(tempInt) == null) {
-					ArrayList<String> al = new ArrayList<String>();
-					al.add(tempStr);
-					bucketsAndKeys.put(tempInt, al);					
+			while ((tempStr = bufferedReader.readLine()) != null) {
+				int tempInt = (int) tempStr.charAt(0);				
+				if(buckets.get(tempInt) == null) {
+					String [] arr = new String[size];
+					arr[0] = tempStr;
+					buckets.put(tempInt, arr);	
+					sizes[tempInt - 33] += 1;
 				}
 				else {
-					bucketsAndKeys.get(tempInt).add(tempStr);					
+					buckets.get(tempInt)[sizes[tempInt - 33]] = tempStr;
+					sizes[tempInt - 33] += 1;
 				}				
-			}
-			
+			}			
 			bufferedReader.close();
 		}		
 		catch(FileNotFoundException fnfe) {
@@ -45,37 +50,30 @@ public class Bucketsort {
 			System.out.println("Error reading file '" + input + "'");
 		}
 		
-		Thread [] threadsArray = new Thread[100];
+		int processors = Runtime.getRuntime().availableProcessors();
 		
-		int threadIndex = 0;
-		for(int k: bucketsAndKeys.keySet()) {
-			BucketThread bt = new BucketThread(bucketsAndKeys.get(k));
-			threadsArray[threadIndex] = new Thread(bt);
-			threadIndex++;
-		}
-		
-		for(int i = 0; i < threadIndex; i++) {
-			threadsArray[i].start();			
-		}
-		
-		for(int i = 0; i < threadIndex; i++) {
-			try {
-				threadsArray[i].join();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if(processors < 8)
+			for(int k = 33; k < buckets.size(); k = k + 2) {	
+				new BucketThread(buckets.get(k), buckets.get(k + 1)).start();;
 			}
+		else 
+			for(int k: buckets.keySet()) {	
+				new BucketThread(buckets.get(k)).start();;
+			}
+		
+		while(Thread.activeCount() != 1) {
+			/*wait until finished*/
 		}
+		
 		
 		try {
 			FileWriter fileWriter = new FileWriter(output);			
 			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);		
 			
-			for(int key: bucketsAndKeys.keySet()) {
-				ArrayList<String> al = bucketsAndKeys.get(key);
-				bufferedWriter.write(key + " : ");
-				for(String str: al)
-					bufferedWriter.write(str + ", ");
+			for(int k: buckets.keySet()) {
+				bufferedWriter.write(k + " : ");
+				for(int i = 0; i < size; i++) 
+					bufferedWriter.write(buckets.get(k)[i] + ", ");
 				bufferedWriter.write("\n");
 			}			
 			
@@ -85,9 +83,9 @@ public class Bucketsort {
 			System.out.println("Error wrtiting to file '" + output + "'");
 		}
 		
-		long stopTime = System.currentTimeMillis();
-	    long elapsedTime = stopTime - startTime;
-	    System.out.println("The time spent is: "  + elapsedTime);
+		double stopTime = System.currentTimeMillis();
+		double elapsedTime = (stopTime - startTime) / 1000;
+	    System.out.println("The time spent is: "  + elapsedTime + "s");
 	}
 
 }

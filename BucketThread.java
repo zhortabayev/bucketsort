@@ -1,16 +1,22 @@
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 
-public class BucketThread implements Runnable{
+public class BucketThread extends Thread{
 	
-	ArrayList<String> al;
+	String [] arr;
+	String [] arr2;
 	
-	public BucketThread(ArrayList<String> al) {
-		this.al = al;
+	public BucketThread(String [] arr) {
+		this.arr = arr;
+	}
+	
+	public BucketThread(String [] arr, String [] arr2) {
+		this.arr = arr;
+		this.arr2 = arr2;
 	}
 	@Override
 	public void run() {
 		// TODO Auto-generated method stub
-		Collections.sort(al);
+		Arrays.parallelSort(arr);
+		if(arr2 != null) Arrays.parallelSort(arr2);		
 	}
 }
