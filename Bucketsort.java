@@ -49,23 +49,13 @@ public class Bucketsort {
 		catch(IOException ioe) {
 			System.out.println("Error reading file '" + input + "'");
 		}
-		
-		int processors = Runtime.getRuntime().availableProcessors();
-		
-		if(processors < 8)
-			for(int k = 33; k < buckets.size(); k = k + 2) {	
-				new BucketThread(buckets.get(k), buckets.get(k + 1)).start();;
-			}
-		else 
-			for(int k: buckets.keySet()) {	
-				new BucketThread(buckets.get(k)).start();;
-			}
-		
+
+		for(int k: buckets.keySet()) 	
+			new BucketThread(buckets.get(k)).start();
 		while(Thread.activeCount() != 1) {
 			/*wait until finished*/
 		}
-		
-		
+				
 		try {
 			FileWriter fileWriter = new FileWriter(output);			
 			BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);		
